@@ -1,0 +1,63 @@
+{
+  "Department": {
+    "-Nzg9dqTEV9FYDNJr3hG": {
+      "Dept_id": "1",
+      "dept_name": "Hematology"
+    },
+    "-Nzg9k5VdYZ_HfRpoKk4": {
+      "Dept_id": "2",
+      "dept_name": "Bio Chemistry"
+    },
+    "-Nzg9n2GuGjPu-jmn2WF": {
+      "Dept_id": "3",
+      "dept_name": "Immunology"
+    }
+  },
+  "Products": {
+    "-Nzi4ZxEMtrmmCKjOklf": {
+      "Department_name": "Hematology",
+      "product_id": "1",
+      "product_name": "BC-700"
+    },
+    "-Nzi4h0VoFQtqm-uzOhM": {
+      "Department_name": "Hematology",
+      "product_id": "2",
+      "product_name": "BC-720"
+    },
+    "-Nzi4kGwYNjnFrf9Ctpf": {
+      "Department_name": "Hematology",
+      "product_id": "3",
+      "product_name": "BC-6000"
+    },
+    "-Nzi4mY9KkvSu6dZ5Ckl": {
+      "Department_name": "Hematology",
+      "product_id": "4",
+      "product_name": "BC-6200"
+    },
+    "-Nzi4rfj0u2Jhgh0zRAS": {
+      "Department_name": "Bio Chemistry",
+      "product_id": "5",
+      "product_name": "BS-230"
+    },
+    "-Nzi4uf5Pj2nZkBmgkM2": {
+      "Department_name": "Bio Chemistry",
+      "product_id": "6",
+      "product_name": "BS-240 E"
+    },
+    "-Nzi4ynVAozG55HOBfqX": {
+      "Department_name": "Bio Chemistry",
+      "product_id": "7",
+      "product_name": "BS-430"
+    },
+    "-Nzi53ghjbrhg33PYt2X": {
+      "Department_name": "Bio Chemistry",
+      "product_id": "8",
+      "product_name": "BS 600 -M"
+    },
+    "-Nzi57ZlsFckXeu0m6ex": {
+      "Department_name": "Immunology",
+      "product_id": "9",
+      "product_name": "CL9601"
+    }
+  }
+}

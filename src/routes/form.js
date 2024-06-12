@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./form.css";
 import { db } from "./firebase"; // Import Realtime Database
 import { ref, get, child } from "firebase/database";
+import img from '../assets/Screenshot 2024-06-11 225909.png';
 
 const Form = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +17,9 @@ const Form = () => {
     email: "",
     productInterest: "",
     expectedDate: "",
-    expectedTime: "09:00 AM",
+    expectedTime: "",
   });
+
 
   const [products, setProducts] = useState([]);
   const [deptProducts, setDeptProducts] = useState({});
@@ -48,30 +50,15 @@ const Form = () => {
     const fetchProducts = async () => {
       try {
         const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, "Products")); // Fetch from 'Products' node
+        const snapshot = await get(child(dbRef, "Products"));
         if (snapshot.exists()) {
           const data = snapshot.val();
-          console.log("Fetched data:", data); // Log fetched data
           const productList = [];
           for (let id in data) {
             productList.push({ id, ...data[id] });
           }
-          console.log("Product List:", productList); // Log product list
           setProducts(productList);
-        } else {
-          console.log("No data available");
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchProducts();
-    const fetchProducts2 = async () => {
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, "Products")); // Fetch from 'Products' node
-        if (snapshot.exists()) {
-          const data = snapshot.val();
+
           const structuredData = {};
           for (let id in data) {
             const product = data[id];
@@ -81,7 +68,6 @@ const Form = () => {
             }
             structuredData[department].push(product);
           }
-          console.log("Structured Data:", structuredData); // Log structured data
           setDeptProducts(structuredData);
         } else {
           console.log("No data available");
@@ -91,8 +77,8 @@ const Form = () => {
       }
     };
     fetchProducts();
-    fetchProducts2();
   }, []);
+
   const handleProductChange = (e, productName) => {
     if (e.target.checked) {
       setSelectedProducts([...selectedProducts, productName]);
@@ -106,8 +92,8 @@ const Form = () => {
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    
     const { name, value, type, checked } = e.target;
+
     if (type === "checkbox") {
       setFormData((prevState) => {
         if (checked) {
@@ -116,9 +102,6 @@ const Form = () => {
             [name]: [...prevState[name], value],
           };
         } else {
-          if (!validateForm()) {
-            return;
-          }
           return {
             ...prevState,
             [name]: prevState[name].filter((item) => item !== value),
@@ -126,8 +109,49 @@ const Form = () => {
         }
       });
     } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData({ ...formData, [name]: value });
     }
+
+    validateField(name, value);
+  };
+
+  const validateField = (name, value) => {
+    let formErrors = { ...errors };
+
+    switch (name) {
+      case "name":
+        formErrors[name] = value ? "" : "Name is required.";
+        break;
+      case "occupation":
+        formErrors[name] = value ? "" : "Occupation is required.";
+        break;
+      case "mobile":
+        formErrors[name] =
+          value.length === 10 ? "" : "Mobile number must be 10 digits.";
+        break;
+      case "email":
+        formErrors[name] = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)
+          ? ""
+          : "Email is not valid.";
+        break;
+      case "expectedDate":
+        formErrors[name] = value ? "" : "Expected date is required.";
+        break;
+      case "expectedTime":
+        formErrors[name] = value ? "" : "Expected time is required.";
+        break;
+      case "productInterest":
+        formErrors[name] = value ? "" : "Product interest is required.";
+        break;
+      case "selectedProducts":
+        formErrors[name] =
+          value.length > 0 ? "" : "At least one product must be selected.";
+        break;
+      default:
+        break;
+    }
+
+    setErrors(formErrors);
   };
 
   const validateForm = () => {
@@ -142,7 +166,6 @@ const Form = () => {
       isValid = false;
       formErrors["occupation"] = "Occupation is required.";
     }
-
     if (!formData.mobile) {
       isValid = false;
       formErrors["mobile"] = "Mobile number is required.";
@@ -150,7 +173,6 @@ const Form = () => {
       isValid = false;
       formErrors["mobile"] = "Mobile number must be 10 digits.";
     }
-
     if (!formData.email) {
       isValid = false;
       formErrors["email"] = "Email is required.";
@@ -158,12 +180,18 @@ const Form = () => {
       isValid = false;
       formErrors["email"] = "Email is not valid.";
     }
-
+    if (!formData.productInterest) {
+      isValid = false;
+      formErrors["productInterest"] = "Product interest is required.";
+    }
+    if (selectedProducts.length === 0) {
+      isValid = false;
+      formErrors["selectedProducts"] = "At least one product must be selected.";
+    }
     if (!formData.expectedDate) {
       isValid = false;
       formErrors["expectedDate"] = "Expected date is required.";
     }
-
     if (!formData.expectedTime) {
       isValid = false;
       formErrors["expectedTime"] = "Expected time is required.";
@@ -187,8 +215,6 @@ const Form = () => {
       mobile,
       email,
       productInterest,
-      department,
-      equipment,
       expectedDate,
       expectedTime,
     } = formData;
@@ -206,8 +232,6 @@ const Form = () => {
         email,
         productInterest,
         selectedProducts,
-        department,
-        equipment,
         expectedDate,
         expectedTime,
       }),
@@ -228,12 +252,11 @@ const Form = () => {
           mobile: "",
           email: "",
           productInterest: "",
-          department: [],
-          equipment: [],
           expectedDate: "",
           expectedTime: "09:00 AM",
         });
         setSelectedProducts([]);
+        setErrors({});
       }
     } catch (error) {
       console.error("There was an error sending the form data!", error);
@@ -251,256 +274,202 @@ const Form = () => {
 
   return (
     <>
-      <div className="form-content-right">
+      <h1 className="text-center text-success mb-4" style={{justifyContent:"center",padding:"20px"}}>
+          FusionGreen Healthcare
+      </h1>
+      <div className="frmcnt">
         <form
           className="bg-white p-5 rounded-lg shadow-lg"
           method="POST"
           noValidate
           id="form"
           onSubmit={handleSubmit}
-          style={{ maxWidth: "500px", width: "100%" }}
+          style={{ maxWidth: "500px", width: "100%",borderRadius:"18px",zIndex:'200px'}}
         >
-          <h1 className="text-center text-success mb-4">
-            FusionGreen Healthcare
-          </h1>
+          <div className="frmb">
 
-          <div className="form-group">
-            <label htmlFor="title" className="font-weight-bold">
-              Title
-            </label>
+          </div>
+          <h3 style={{color:'#198754'}}>Product Appointment</h3>
+          <div className="form-group" style={{display:"flex"}} >
             <select
               name="title"
               value={formData.title}
               onChange={handleChange}
               className="form-control"
-              style={{ border: " .5px solid green" }}
+              style={{borderColor:"#D5E0DB",width:"55px",border:"1.6px solid #D5E0DB"}}
             >
               <option value="Mr.">Mr.</option>
               <option value="Ms.">Ms.</option>
               <option value="Mrs.">Mrs.</option>
               <option value="Dr.">Dr.</option>
             </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="name" className="font-weight-bold">
-              Name
-            </label>
+            <div style={{paddingLeft:"15px"}}></div>
             <input
               type="text"
               name="name"
-              placeholder="Enter your name"
+              placeholder="Name"
               value={formData.name}
               onChange={handleChange}
               className="form-control"
               required
+              style={{
+                paddingLeft:"15px",
+                border:
+                  formData.name.length  < 3 && formData.name.length > 0 ? "1.6px solid red" : "1.6px solid #D5E0DB",
+              }}
             />
-            <div className="text-danger">{errors.name}</div>
-          </div>
-
+            </div>
+            <div className="text-danger"  style={{marginTop:"-15px"}}>{errors.name}</div>
+            <div style={{paddingBottom:"13px"}}></div>
           <div className="form-group">
-            <label htmlFor="occupation" className="font-weight-bold">
-              Occupation
-            </label>
             <input
               type="text"
               name="occupation"
-              placeholder="Enter your occupation"
+              placeholder="Occupation"
               value={formData.occupation}
               onChange={handleChange}
               className="form-control"
               required
+              style={{
+                border:
+                  formData.occupation.length < 3 && formData.occupation.length > 0
+                    ? "1.6px solid red"
+                    : "1.6px solid #D5E0DB",
+              }}
             />
             <div className="text-danger">{errors.occupation}</div>
           </div>
 
           <div className="form-group">
-            <label className="font-weight-bold">Company Type</label>
-            <div className="d-flex">
-              <div className="form-check">
-                <input
-                  type="radio"
-                  name="companyType"
-                  value="Company"
-                  checked={formData.companyType === "Company"}
-                  onChange={handleChange}
-                  className="form-check-input"
-                  id="companyTypeCompany"
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="companyTypeCompany"
-                >
-                  Company
-                </label>
-              </div>
-              <div className="form-check">
-                <input
-                  type="radio"
-                  name="companyType"
-                  value="Hospital"
-                  checked={formData.companyType === "Hospital"}
-                  onChange={handleChange}
-                  className="form-check-input"
-                  id="companyTypeHospital"
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="companyTypeHospital"
-                >
-                  Hospital
-                </label>
-              </div>
-              <div className="form-check">
-                <input
-                  type="radio"
-                  name="companyType"
-                  value="Laboratory"
-                  checked={formData.companyType === "Laboratory"}
-                  onChange={handleChange}
-                  className="form-check-input"
-                  id="companyTypeLaboratory"
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="companyTypeLaboratory"
-                >
-                  Laboratory
-                </label>
-              </div>
-            </div>
+            <select
+              name="companyType"
+              value={formData.companyType}
+              onChange={handleChange}
+              className="form-control"
+              style={{borderColor:"#D5E0DB",border: '1.6px solid #D5E0DB'}}
+            >
+              <option value="Company">Company</option>
+              <option value="Startup">Startup</option>
+              <option value="Individual">Individual</option>
+            </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="mobile" className="font-weight-bold">
-              Mobile
-            </label>
             <input
-              type="text"
+              type="tel"
               name="mobile"
-              placeholder="Enter your mobile number"
+              placeholder="Mobile"
               value={formData.mobile}
               onChange={handleChange}
               className="form-control"
               required
+              style={{
+                border:
+                  formData.mobile.length !=10 && formData.mobile.length > 0
+                    ? "1.6px solid red"
+                    : "1.6px solid #D5E0DB",
+              }}
             />
             <div className="text-danger">{errors.mobile}</div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="email" className="font-weight-bold">
-              Email
-            </label>
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
               className="form-control"
+              style={{
+                border: !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email) && formData.mobile.length > 0
+                  ? "1.6px solid red"
+                  : "1.6px solid #D5E0DB",
+              }}
               required
             />
             <div className="text-danger">{errors.email}</div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="productInterest" className="font-weight-bold">
-              Product Interest
-            </label>
             <select
               name="productInterest"
               value={formData.productInterest}
               onChange={handleChange}
               className="form-control"
-              style={{ border: ".5px solid green" }}
+              style={{ border: "1.6px solid #D5E0DB" }}
             >
               <option value="">--- Select a product ---</option>
               <option value="Mindray">Mindray</option>
               <option value="Sinocare">Sinocare</option>
             </select>
+            <div className="text-danger">{errors.productInterest}</div>
           </div>
-          {/* <div className="department-products">
-            {Object.entries(deptProducts).map(([department, products]) => (
-                <div key={department} className="department-section">
-                    <h2>{department}</h2>
-                    <div className="product-list">
-                        {products.map(product => (
-                            <div key={product.product_id} className="product-item">
-                                {product.product_name}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            ))}
-        </div> */}
-          <div className="department-products">
-            {Object.entries(deptProducts).map(([department, products]) => (
-              <div key={department} className="department-section">
-                <h5>{department}</h5>
-                <div className="product-list">
-                  {products.map((product) => (
-                    <div
-                      key={product.product_id}
-                      className="product-item"
-                      style={{ fontSize: "16px" }}
-                    >
-                      <label style={{ paddingLeft: "2px" }}>
-                        <input
-                          type="checkbox"
-                          value={product.product_name}
-                          onChange={(e) =>
-                            handleProductChange(e, product.product_name)
-                          }
-                          checked={selectedProducts.includes(
-                            product.product_name
-                          )}
-                          className="checkbox"
-                        />
-                        {product.product_name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+      <h3 style={{color:"#198754"}}>Department</h3>
+      <div className="department-products">
+      {Object.entries(deptProducts).map(([department, products]) => (
+        <div key={department} className="department-section">
+          <label style={{}}>{department}</label>
+          <div className="product-list d-flex">
+            {products.map(product => (
+              <div
+                key={product.product_id}
+                className="product-item d-flex align-items-center"
+                style={{ fontSize: "10px" }}
+              >
+                <input
+                  type="checkbox"
+                  value={product.product_name}
+                  onChange={e => handleProductChange(e, product.product_name)}
+                  checked={selectedProducts.includes(product.product_name)}
+                  id={`check-${product.product_id}`}
+                  className="check"
+                />
+                <label htmlFor={`check-${product.product_id}`} style={{color:'#D5E0DB',}} className="glowing">
+                  {product.product_name}
+                </label>
               </div>
             ))}
           </div>
+        </div>
+      ))}
+    </div>
 
-          <div className="form-group">
-            <label htmlFor="expectedDate" className="font-weight-bold">
-              Expected Date for Appointment
-            </label>
+    <div className="form-group">
             <input
               type="date"
               name="expectedDate"
               value={formData.expectedDate}
               onChange={handleChange}
               className="form-control"
-              style={{ border: " .5px solid green" }}
+              style={{borderColor:"#D5E0DB"}}
               required
             />
             <div className="text-danger">{errors.expectedDate}</div>
-          </div>
+    </div>
 
           <div className="form-group">
-            <label htmlFor="expectedTime" className="font-weight-bold">
-              Expected Time
-            </label>
             <input
               type="time"
               name="expectedTime"
               value={formData.expectedTime}
               onChange={handleChange}
               className="form-control"
-              style={{ border: " .5px solid green" }}
+              style={{
+                border:
+                  formData.expectedTime.length == 0
+                    ? "1.6px solid red"
+                    : "1.6px solid #D5E0DB",
+                borderColor:"#D5E0DB"
+              }}
               required
             />
             <div className="text-danger">{errors.expectedTime}</div>
           </div>
-          <div className="form-group">
-            <button type="submit" className="btn btn-success btn-block">
-              Make Appointment
-            </button>
-          </div>
+
+          <button type="submit" className="btn btn-success btn-block" >
+            Book Appointment
+          </button>
         </form>
       </div>
       <Footer />
